@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-//PROXIMO PASSO: CRIAR VETOR CIDADE LINHA E VETOR CIDADE COLUNA e depois ordená-los por ordem alfabética
+/*PROXIMO PASSO: CRIAR VETOR CIDADE LINHA E VETOR CIDADE COLUNA e depois ordená-los por ordem alfabética
+Na realidade será apenas um vetor, pois o CIDADE LINHA e CIDADE COLUNA darão a mesma coisa*/
 int tamanho_matriz;
 typedef struct{
     char cidade1[20], cidade2[20];
