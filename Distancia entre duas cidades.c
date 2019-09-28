@@ -21,7 +21,7 @@ FILE *abre_arquivo(char *nome_arquivo){
 }
 
 int myPow(int n1, int n2){//Faz n1 elvado a n2
-   int resultado = 1;
+    int resultado = 1;
     while(n2 > 0){
         resultado = resultado*n1;
         n2--;
@@ -100,6 +100,7 @@ int converte_para_int(char *string){//Irá converter uma string passada como par
     }
     return number;//retorna o número já convertido para string
 }
+
 char * encontra_cidade1(const char *string_line){ //Essa função irá converter a cidade 1 que está no arquivo em uma determinada linha para string
     char *s;//Um ponteiro de char é declarado pois eu não sei quantos caracteres irei precisar alocar
     int cont = 0, i;
@@ -121,7 +122,7 @@ char * encontra_cidade2(const char *string_line) { //Semelhante à função ante
         if(pode_contar){ //Se eu posso contar, então meu contador é incrementado, ou seja começo a contar quantos espaço irei precisar para alocar o meu ponteiro de caracteres
             cont++;
         }
-        if(string_line[i] == ' '){ //Se eu cheguei no espaço que dizer qeu eu já posso inicializar a contagem para começar a alocação
+        if(string_line[i] == ' '){ //Se eu cheguei no espaço que dizer que eu já posso inicializar a contagem para começar a alocação
             pode_contar = 1;
             qtde_espacos++;
         }
