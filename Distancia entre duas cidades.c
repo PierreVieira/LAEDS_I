@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-/*PROXIMO PASSO: CRIAR VETOR CIDADE LINHA E VETOR CIDADE COLUNA e depois ordená-los por ordem alfabética
-Na realidade será apenas um vetor, pois o CIDADE LINHA e CIDADE COLUNA darão a mesma coisa*/
-int tamanho_matriz;
+#define TAM 20
+int tamanho_matriz, qtde_cidades_diferentes = 0;
+
 typedef struct{
-    char cidade1[20], cidade2[20];
+    char cidade1[TAM], cidade2[TAM];
     int distancia;
 }LIGACAO;
 
 typedef struct{
-    char cidade1[20], cidade2[20];
+    char cidade1[TAM], cidade2[TAM];
 }CIDADES_PESQUISA;
 
 FILE *abre_arquivo(char *nome_arquivo){
@@ -48,9 +48,24 @@ void copia_string(char *s1, const char *s2){//Copia o conteúdo de s2 pra s1
 
 int ** Aloca_matriz(int lin, int col){//Retorna a matriz alocada
     int **matriz;
-    matriz = calloc(sizeof(int*), lin);
+    matriz = calloc(lin, sizeof(int*));
     for (int i = 0; i < col; ++i) {
         matriz[i] = calloc(lin, sizeof(int));
+    }
+    return matriz;
+}
+
+char ** Aloca_matriz_char(int lin, int col){//Retorna a matriz alocada
+    char **matriz;
+    matriz = calloc(lin, sizeof(char*));
+    for (int i = 0; i < col; ++i) {
+        matriz[i] = calloc(col, sizeof(char));
+    }
+    //Colocando 0 em todas as posições da matriz
+    for (int i = 0; i < lin; ++i) {
+        for (int j = 0; j < col; ++j) {
+            matriz[i][j] = '0';
+        }
     }
     return matriz;
 }
@@ -61,16 +76,7 @@ int retorna_tamanho_da_matriz(FILE *f){//Aqui irei retornar o tamanho da matriz
     return t;
 }
 
-void printa_matriz_quadrada(int **matriz){//Essa função printa a matriz formatada
-    for (int i = 0; i < tamanho_matriz; ++i) {
-        for (int j = 0; j <tamanho_matriz ; ++j) {
-            printf("[%d] ", matriz[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-LIGACAO *aloca_struct(LIGACAO *ligacoes){
+LIGACAO *aloca_struct(){
     return malloc(sizeof(LIGACAO)*tamanho_matriz);
 }
 
@@ -118,8 +124,9 @@ char * encontra_cidade1(const char *string_line){ //Essa função irá converter
 
 char * encontra_cidade2(const char *string_line) { //Semelhante à função anterior: aqui irei pegar o valor, ou seja o que está depois do ' '
     char *s;//Um ponteiro de char é declarado pois eu não sei quantos caracteres irei precisar alocar
-    int cont = 0, pode_contar = 0, pode_copiar = 0, i, j, qtde_espacos = 0, qtde_espacos_pro_segundo_for = 0;
-    for (i = 0; qtde_espacos != 2 ; ++i) {
+    int cont = 0, pode_contar = 0, pode_copiar = 0, i, j, qtde_espacos = 0, qtde_espacos_pro_segundo_for = 0, q;
+    q = quantidade_de_caracteres(string_line);
+    for (i = 0; qtde_espacos != 2; ++i) {
         if(pode_contar){ //Se eu posso contar, então meu contador é incrementado, ou seja começo a contar quantos espaço irei precisar para alocar o meu ponteiro de caracteres
             cont++;
         }
@@ -143,7 +150,29 @@ char * encontra_cidade2(const char *string_line) { //Semelhante à função ante
     return s;//Retorna o ponteiro já com o valor do valor no formato de string
 }
 
-int encontra_distancia(char *s){ //Aqui irei encontrar o valor da distancia e jogar pra inteiro;
+char * encontra_cidade2Especial(const char *string_line){
+    char *s;//Um ponteiro de char é declarado pois eu não sei quantos caracteres irei precisar alocar
+    int cont = 0, i = 0, j = 0, k;
+    while(1){
+        if(string_line[i] == ' '){ //Se eu cheguei no espaço que dizer que eu já posso inicializar a contagem para começar a alocação
+            i++;
+            break;
+        }
+        i++;
+    }
+    k = i;
+    for (; string_line[i] != '\0'; ++i) {
+        cont++;
+    }
+    s = malloc(cont*sizeof(char));//Depois de todas essas verificações posso finalmente alocar o meu ponteiro
+    for (; string_line[k] != '\0' ; ++k, ++j) {
+        s[j] = string_line[k];
+    }
+    s[j] = '\0';//Tira os lixos de memória
+    return s;//Retorna o ponteiro já com o valor do valor no formato de string
+}
+
+int encontra_distancia(const char *s){ //Aqui irei encontrar o valor da distancia e jogar pra inteiro;
     int ascii, cont = 0, distancia, i, j;
     char *s2;
     for (i = 0; s[i] != '\0'; ++i) {//Aqui irei percorrer a string toda para saber quantos chars tenho que alocar
@@ -179,38 +208,199 @@ void preenche_struct(LIGACAO *ligacoes, CIDADES_PESQUISA *cidadesPesquisa, FILE 
         ligacoes[linha_interesse-2].distancia = encontra_distancia(string_line);
         linha_interesse++;//A linha de interesse (a linha que quero ler do arquivo) é acrementada
     }//Os dados são então recebidos, convertidos e inseridos na minha estrutura de dados
-    f = abre_arquivo(nome_arquivo);
+      f = abre_arquivo(nome_arquivo);
     string_line = pega_linha(f, tamanho_matriz+2);
     cidade1 = encontra_cidade1(string_line);
-    cidade2 = encontra_cidade2(string_line);
+    cidade2 = encontra_cidade2Especial(string_line);
     copia_string(cidadesPesquisa->cidade1, cidade1);
     copia_string(cidadesPesquisa->cidade2, cidade2);
 }
 
-void printa_estutura(LIGACAO *l){
+int strings_iguais(char *s1, char *s2){
+    if(quantidade_de_caracteres(s1) != quantidade_de_caracteres(s2)){
+        return 0;
+    }
+    for (int i = 0; s1[i] != '\0'; ++i) {
+        if(s1[i] != s2[i]){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int tem_a_cidade(char *cidade1, char cidades[TAM][TAM]){
     for (int i = 0; i < tamanho_matriz; ++i) {
-        printf("========== POSICAO ANALISADA %d ==========\n", i);
-        printf("CIDADE 1 = %s\nCIDADE 2 = %s\nDistancia = %d\n", l[i].cidade1, l[i].cidade2, l[i].distancia);
+        if(strings_iguais(cidade1, cidades[i])){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int encaixa_se_nao_repetiu(char cidades[TAM][TAM], char *cidade_a_ser_alocada, char *cidade){
+    if(!tem_a_cidade(cidade, cidades)){
+        copia_string(cidade_a_ser_alocada, cidade);
+        return 1;
+    }
+    return 0;
+}
+
+void zera_geral(char vetor_cidades[TAM][TAM]){
+    int i, j;
+    for (i = 0; i < TAM; ++i) {
+        for (j = 0; j < TAM; ++j) {
+            vetor_cidades[i][j] = '0';
+        }
     }
 }
 
+void copia_matrizes(char vetor_cidades[TAM][TAM], char **vetor_cidades2, int pos_final){
+    for (int i = 0; i <= pos_final ; ++i) {
+        for (int j = 0; j < TAM; ++j) {
+            vetor_cidades2[i][j] = vetor_cidades[i][j];
+        }
+    }
+}
+
+char **diferentes_cidades_na_struct(LIGACAO *ligacoes){
+    char vetor_cidades[TAM][TAM], **vetor_cidades2;
+    int i, j;
+    zera_geral(vetor_cidades);
+    for (i = j = 0; i < tamanho_matriz; ++i) {
+        if(encaixa_se_nao_repetiu(vetor_cidades, vetor_cidades[j], ligacoes[i].cidade1)){
+            j++;
+        }
+    }
+    for (i = 0; i < tamanho_matriz; ++i) {
+        if(i >= j){
+            if(encaixa_se_nao_repetiu(vetor_cidades, vetor_cidades[j], ligacoes[i].cidade2)){
+                j++;
+            }
+        }
+    }
+    qtde_cidades_diferentes = j;
+    vetor_cidades2 = Aloca_matriz_char(j, TAM);
+    copia_matrizes(vetor_cidades, vetor_cidades2, j-1);
+    return vetor_cidades2;
+}
+
+int encontra_distancia_entre_cidades(char *cidade1, char *cidade2, LIGACAO *ligacoes){
+    for (int i = 0; i < tamanho_matriz; ++i) {
+        if((strings_iguais(ligacoes[i].cidade1, cidade1) || strings_iguais(ligacoes[i].cidade1, cidade2)) && ((strings_iguais(ligacoes[i].cidade2, cidade1) || strings_iguais(ligacoes[i].cidade2, cidade2)))){
+            return ligacoes[i].distancia;
+        }
+    }
+    return 0;
+}
+
+void preenche_linha_da_matriz_de_adjacencia_ate_a_diagonal_principal(int *linha_da_matriz_de_adjacencia, char *linha_do_vetor_cidades, int pos_passada_como_parametro, char **vetor_cidades, LIGACAO *ligacoes){
+    int i, j;
+    for (i = j = 0; i < qtde_cidades_diferentes; ++i, ++j) {
+        if(pos_passada_como_parametro == i){
+            linha_da_matriz_de_adjacencia[i] = 0;
+            break;
+        }
+        else{
+            linha_da_matriz_de_adjacencia[i] = encontra_distancia_entre_cidades(linha_do_vetor_cidades, vetor_cidades[j], ligacoes);
+        }
+    }
+}
+
+void espelhar_matriz_adjacencia_pra_cima(int **matriz_de_adjacencia){
+    for (int i = 0; i < qtde_cidades_diferentes; ++i) {
+        for (int j = 0; j < qtde_cidades_diferentes; ++j) {
+            if(j > i){
+                matriz_de_adjacencia[i][j] = matriz_de_adjacencia[j][i];
+            }
+        }
+    }
+}
+
+void preenche_matriz_de_adjacencia(int **matriz_de_adjacencia, char **vetor_cidades, LIGACAO *ligacoes){
+    for (int i = 0; i < qtde_cidades_diferentes; ++i) {//Percorrendo a coluna
+        preenche_linha_da_matriz_de_adjacencia_ate_a_diagonal_principal(matriz_de_adjacencia[i], vetor_cidades[i], i, vetor_cidades, ligacoes);
+    }
+    espelhar_matriz_adjacencia_pra_cima(matriz_de_adjacencia);
+}
+
+void dijkstra(int **matriz){
+    int *visitados, n = qtde_cidades_diferentes;
+    visitados = calloc(qtde_cidades_diferentes, sizeof(int));
+    unsigned long int min_valor;
+    // O valor 'i' do for abaixo não é utilizado, pois o for serve apenas para percorrer todo o número de colunas da matriz
+    for(int i = 1; i < n; i++){ // Começa em 1 pois não precisa comparar o vértice com ele mesmo
+
+        int min = -1; // Variável que guarda a posição do menor valor, inicia em -1 pois é uma posição inválida
+        unsigned long int MinValor = 4294967295; // Variável que guarda o menor valor encontrado, inicia com 'infinito', assim, sempre na primeira passada o valor será menor que esta variável
+
+        // For que percorre todas as linhas na coluna [0]
+        for(int j = 1; j < n; j++){
+            // Se o vertice ainda não foi visitado e o valor for menor que o 'MinValor'
+            if( !visitados[j] && matriz[j][0] < MinValor ){
+                min = j; // Guarda a posição do menor
+                MinValor = matriz[j][0]; // Guarda o menor valor
+            }
+        }
+
+        visitados[min] = 1; // Marca o valor a posição do minimo como visitado
+
+        // For de 1 até n
+        for(int j = 1; j < n; j++){
+            // Se o valor da coluna [0] + o valor da coluna que está passando for menor que o valor da linha que está passando e coluna [0]
+            // Atualiza a primeira coluna da matriz, que será utilizado para as próximas iterações
+            if( (matriz[min][0] + matriz[min][j]) < matriz[j][0] ){
+                matriz[j][0] = matriz[min][0] + matriz[min][j];
+            }
+        }
+    }
+}
+
+int acha_pos(char *s1, char **s2){//Encontra onde s1 tá em s2;
+    for (int i = 0; i < qtde_cidades_diferentes; ++i) {
+        if(strings_iguais(s1, s2[i])){
+            return i;
+        }
+    }
+    return -1;//Quer dizer que não tem
+}
+
+void printar(int **v){
+    for (int i = 0; i < qtde_cidades_diferentes; ++i) {
+        for (int j = 0; j < qtde_cidades_diferentes; ++j) {
+            printf("[%d] ", v[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void menor_percurso(int menor_distancia, char **vetor_cidades, LIGACAO *ligacoes, int p1, int p2){
+
+}
 
 int main() {
     FILE *f;
-    f = abre_arquivo("m.txt");
-    int **matriz_distancias;
+    int **matriz_de_adjacencia, pos1, pos2, menor_distancia;
+    char **vetor_cidades;
     LIGACAO *ligacoes;
     CIDADES_PESQUISA *cidadesPesquisa;
+    f = abre_arquivo("m.txt");
     cidadesPesquisa = malloc(sizeof(cidadesPesquisa));
-    //    char nome_arquivo[100];
-//    printf("Digite o nome do arquivo de entrada: ");
-//    scanf(" %[^\n]s", nome_arquivo);
     tamanho_matriz = retorna_tamanho_da_matriz(f);
-    matriz_distancias = Aloca_matriz(tamanho_matriz, tamanho_matriz);
-    //printa_matriz_quadrada(matriz_distancias);
-    ligacoes = aloca_struct(ligacoes);
+    ligacoes = aloca_struct();
     preenche_struct(ligacoes, cidadesPesquisa, f, "m.txt");
-    printa_estutura(ligacoes);
-    printf("\nCIDADES DE PESQUISA\n%s || %s", cidadesPesquisa->cidade1, cidadesPesquisa->cidade2);
+    vetor_cidades = diferentes_cidades_na_struct(ligacoes);
+    matriz_de_adjacencia = Aloca_matriz(qtde_cidades_diferentes, qtde_cidades_diferentes);
+    preenche_matriz_de_adjacencia(matriz_de_adjacencia, vetor_cidades, ligacoes);
+    pos1 = acha_pos(cidadesPesquisa->cidade1, vetor_cidades);
+    pos2 = acha_pos(cidadesPesquisa->cidade2, vetor_cidades);
+    printar(matriz_de_adjacencia);
+    printf("======= LA VEM O DAISKRA =======\n");
+    dijkstra(matriz_de_adjacencia);
+    menor_distancia = matriz_de_adjacencia[pos2][pos1];
+    printar(matriz_de_adjacencia);
+    //Menor percurso: A B C D;
+    printf("Menor percuruso: ");
+    menor_percurso(menor_distancia, vetor_cidades, ligacoes, pos1, pos2);
+    printf("Distancia total: %d km\n", menor_distancia);
     return 0;
 }
