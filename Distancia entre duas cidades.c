@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #define TAM 20
 int tamanho_matriz, qtde_cidades_diferentes = 0;
 
@@ -149,7 +149,10 @@ char * encontra_cidade2(const char *string_line) { //Semelhante à função ante
     return s;//Retorna o ponteiro já com o valor do valor no formato de string
 }
 
-char * encontra_cidade2Especial(const char *string_line){
+char * encontra_cidade2Especial(char *string_line){
+    if(string_line[quantidade_de_caracteres(string_line)-1] == '\n'){
+        string_line[quantidade_de_caracteres(string_line)-1] = '\0';
+    }
     char *s;//Um ponteiro de char é declarado pois eu não sei quantos caracteres irei precisar alocar
     int cont = 0, i = 0, j = 0, k;
     while(1){
@@ -206,7 +209,7 @@ void preenche_struct(LIGACAO *ligacoes, CIDADES_PESQUISA *cidadesPesquisa, FILE 
         ligacoes[linha_interesse-2].distancia = encontra_distancia(string_line);
         linha_interesse++;//A linha de interesse (a linha que quero ler do arquivo) é acrementada
     }//Os dados são então recebidos, convertidos e inseridos na minha estrutura de dados
-      f = abre_arquivo(nome_arquivo);
+    f = abre_arquivo(nome_arquivo);
     string_line = pega_linha(f, tamanho_matriz+2);
     cidade1 = encontra_cidade1(string_line);
     cidade2 = encontra_cidade2Especial(string_line);
@@ -408,14 +411,14 @@ int main() {
     preenche_matriz_de_adjacencia(matriz_de_adjacencia, vetor_cidades, ligacoes);
     pos1 = acha_pos(cidadesPesquisa->cidade1, vetor_cidades);
     pos2 = acha_pos(cidadesPesquisa->cidade2, vetor_cidades);
-//    printar(matriz_de_adjacencia);
-//    printf("======= LA VEM O DAISKRA =======\n");
+   //printar(matriz_de_adjacencia);
+    //printf("======= LA VEM O DAISKRA =======\n");
     dijkstra(matriz_de_adjacencia, pos1);
     menor_distancia = matriz_de_adjacencia[pos2][pos1];
     //printar(matriz_de_adjacencia);
     //Menor percurso: A B C D;
     printf("Menor percurso: ");
     menor_percurso(menor_distancia, vetor_cidades, matriz_de_adjacencia, pos1, pos2);
-    printf("Distancia total: %d Km\n", menor_distancia);
+    printf("Distancia total: %d Km", menor_distancia);
     return 0;
 }
