@@ -411,7 +411,7 @@ int main() {
     preenche_matriz_de_adjacencia(matriz_de_adjacencia, vetor_cidades, ligacoes);
     pos1 = acha_pos(cidadesPesquisa->cidade1, vetor_cidades);
     pos2 = acha_pos(cidadesPesquisa->cidade2, vetor_cidades);
-   //printar(matriz_de_adjacencia);
+    //printar(matriz_de_adjacencia);
     //printf("======= LA VEM O DAISKRA =======\n");
     dijkstra(matriz_de_adjacencia, pos1);
     menor_distancia = matriz_de_adjacencia[pos2][pos1];
@@ -419,6 +419,7 @@ int main() {
     //Menor percurso: A B C D;
     printf("Menor percurso: ");
     menor_percurso(menor_distancia, vetor_cidades, matriz_de_adjacencia, pos1, pos2);
-    printf("Distancia total: %d Km", menor_distancia);
+    printf("Distancia total: %d Km\n", menor_distancia);
+    printf("%s", f->_IO_read_base);
     return 0;
 }
