@@ -402,7 +402,7 @@ int main() {
     printf("Digite o nome do arquivo de entrada: ");
     scanf(" %[^\n]s", nome_arquivo);
     f = abre_arquivo(nome_arquivo);
-    cidadesPesquisa = malloc(sizeof(cidadesPesquisa));
+    cidadesPesquisa = malloc(sizeof(CIDADES_PESQUISA));
     tamanho_matriz = retorna_tamanho_da_matriz(f);
     ligacoes = aloca_struct();
     preenche_struct(ligacoes, cidadesPesquisa, f, nome_arquivo);
@@ -420,6 +420,5 @@ int main() {
     printf("Menor percurso: ");
     menor_percurso(menor_distancia, vetor_cidades, matriz_de_adjacencia, pos1, pos2);
     printf("Distancia total: %d Km\n", menor_distancia);
-    //printf("%s", f->_IO_read_base);
     return 0;
 }
