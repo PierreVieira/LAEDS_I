@@ -420,6 +420,6 @@ int main() {
     printf("Menor percurso: ");
     menor_percurso(menor_distancia, vetor_cidades, matriz_de_adjacencia, pos1, pos2);
     printf("Distancia total: %d Km\n", menor_distancia);
-    printf("%s", f->_IO_read_base);
+    //printf("%s", f->_IO_read_base);
     return 0;
 }
