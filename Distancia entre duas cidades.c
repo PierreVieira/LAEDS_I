@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MAX_NOME_CIDADE 20
-#define TAM_VET_POSICOES 30
+#define TAM_VET_POSICOES 15
 #define CONDICAO_PROIBIDA -1
 
 typedef struct{
     char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE];
-    int distancia;
+    int distancia, faz_parte_da_solucao;
 }cidadesLigadas;
 
 typedef struct{
@@ -126,6 +126,7 @@ cidadesLigadas* montar_struct_cidades_ligadas(FILE *f, int qtde_ligacoes){
             copiar_string(ligadas[i].cidade1, s1);
             copiar_string(ligadas[i].cidade2, s2);
             ligadas[i].distancia = converte_string_pra_int(s3);
+            ligadas[i].faz_parte_da_solucao = 0;
         }
         else{
             return ligadas;
@@ -189,11 +190,6 @@ int repreencher_matriz_caracteres(char **matriz_char, cidadesLigadas *ligadas){
     return qtde_consideravel;//quantidade de linhas a se considerar
 }
 
-void printar_matriz_de_caracteres(char **matriz, int t){
-    for (int i = 0; i < t; ++i) {
-        printf("%s\n", matriz[i]);
-    }
-}
 
 void copiar_o_importante_de_2_para_1(char **m1, char **m2, int q){//Copia o conteudo de m2 para m1 até q;
     for (int i = 0; i < q; ++i) {
@@ -310,7 +306,7 @@ int verifica_ordem(char *s1, char *s2){
 }
 
 int esta_em_ordem_alfabetica(char *s1, char *s2){//Verifica se s1 está em ordem alfabética se comparado à s2
-    int retorno = -2;
+    int retorno;
     retorno = verifica_ordem(s1, s2);
     return retorno;
 }
@@ -384,20 +380,9 @@ void preencher_matriz_de_adjacencia_com_os_valores_corretos_de_distancia(int **m
     }
 }
 
-int *inicializa_vet_posicoes(int p_origem){
-    int *v;
-    v = malloc(sizeof(int)*TAM_VET_POSICOES);
-    v[0] = p_origem; //marca como visitado
-    for (int i = 1; i < TAM_VET_POSICOES; ++i) {
-        v[i] = CONDICAO_PROIBIDA; //quer dizer que essa posição ainda não foi visitada
-    }
-    return v;
-}
-
-int *dijkstra(int **matriz, int p, char **cidades_diferentes){
-    int *visitados, n = qtde_cidades_diferentes, *vetor_posicoes, k = 1;
+void dijkstra(int **matriz, int p){
+    int *visitados, n = qtde_cidades_diferentes;
     visitados = calloc(qtde_cidades_diferentes, sizeof(int));
-    vetor_posicoes = inicializa_vet_posicoes(p);
     // O valor 'i' do for abaixo não é utilizado, pois o for serve apenas para percorrer o número de colunas da matriz
     for(int i = 1; i < n; i++){ // Começa em 1 pois não precisa comparar o vértice com ele mesmo
         int min = CONDICAO_PROIBIDA; // Variável que guarda a posição do menor valor, inicia em CONDICAO_PROIBIDA pois é uma posição inválida
@@ -408,8 +393,6 @@ int *dijkstra(int **matriz, int p, char **cidades_diferentes){
             if( !visitados[j] && matriz[j][p] < MinValor ){
                 min = j; // Guarda a posição do menor
                 MinValor = matriz[j][p]; // Guarda o menor valor
-                vetor_posicoes[k] = j;
-                k++;
             }
         }
         visitados[min] = 1; // Marca o valor a posição do minimo como visitado
@@ -422,72 +405,19 @@ int *dijkstra(int **matriz, int p, char **cidades_diferentes){
             }
         }
     }
-    return vetor_posicoes;
 }
 
-void printar_menor_caminho(char **vetor_cidades, const int *vet_posicoes){
-    for (int i = 0; vet_posicoes[i] != CONDICAO_PROIBIDA; ++i) {
-        if(vet_posicoes[i+1] != CONDICAO_PROIBIDA){
-            printf("%s ", vetor_cidades[vet_posicoes[i]]);
-        }
-        else{
-            printf("%s\n", vetor_cidades[vet_posicoes[i]]);
-            break;
-        }
+void ordenar_por_ordem_alfabetica_cidades_pesquisa(cidadesPesquisa *pesquisa){
+    if((!esta_em_ordem_alfabetica(pesquisa->cidade1, pesquisa->cidade2))){
+        char aux[20];
+        copiar_string(aux, pesquisa->cidade1);
+        copiar_string(pesquisa->cidade1,  pesquisa->cidade2);
+        copiar_string(pesquisa->cidade2, aux);
     }
-}
-
-//void menor_caminho(int menor_distancia, char **vetor_cidades, int **matriz_de_adjacencia, int p_origem, int p_destino){
-//    int soma, aux, i, j, k, termo, origem_coluna = 1;
-//    int *vet_posicoes;
-//    vet_posicoes = inicializa_vet_posicoes(p_origem);
-//    soma = 0;
-//    k = 1;
-//    i = p_origem;
-//    j = origem_coluna;
-//    while(1){
-//        if(i == j){
-//            j++;
-//        }
-//        termo = matriz_de_adjacencia[i][j];
-//        if((soma + termo < menor_distancia)){
-//            soma += termo;
-//            vet_posicoes[k] = j;
-//            k++;
-//            //i troca com j e anda 1 com j
-//            aux = i;
-//            i = j;
-//            j = aux;
-//            j++;
-//        }
-//        else if((soma + matriz_de_adjacencia[i][j] == menor_distancia) && strings_iguais(vetor_cidades[j], vetor_cidades[p_destino])){
-//            vet_posicoes[k] = j;
-//            break;
-//        }
-//        else{
-//            soma = 0;
-//            vet_posicoes = inicializa_vet_posicoes(p_origem);
-//            k = 1;
-//            //volta para a oposição de origem e tenta a próxima ligação
-//            i = p_origem;
-//            origem_coluna++;
-//            j = origem_coluna;
-//        }
-//    }
-//    printar_menor_caminho(vetor_cidades, vet_posicoes);
-//}
-
-int encontra_tamanho_fake(int *v){
-    int i = 0;
-    while(v[i] != -1){
-        i++;
-    }
-    return i;
 }
 
 void preenche_matriz_possibilidades(int **matriz_tentativa_e_erro, int linhas, int colunas){
     //Deve-se fixar a coluna e percorrer as linhas
-    printf("Quantidade de linhas: %d\nQuantidade de colunas: %d\n", linhas, colunas);
     int numero, alternancia, cont;
     alternancia = 1;
     for (int j = colunas-1; j >= 0; --j) {
@@ -504,45 +434,123 @@ void preenche_matriz_possibilidades(int **matriz_tentativa_e_erro, int linhas, i
     }
 }
 
-int* testar_matriz_tentativa_e_erro(int **matriz, int linha, int coluna, int *caminho_fake){
-    //PAREI AQUI
-}
-
-int* criar_menor_caminho_true(int *caminho_fake, char **vetor_cidades){
-    int tamano_fake, numero_possibilidades_tabela_verdade, **matriz_tentativa_e_erro, *vetor_solucao;
-    tamano_fake = encontra_tamanho_fake(caminho_fake);
-    numero_possibilidades_tabela_verdade = myPow(2, tamano_fake);
-    matriz_tentativa_e_erro = Aloca_matriz(numero_possibilidades_tabela_verdade, tamano_fake);
-    preenche_matriz_possibilidades(matriz_tentativa_e_erro, numero_possibilidades_tabela_verdade, tamano_fake);
-    vetor_solucao = testar_matriz_tentativa_e_erro(matriz_tentativa_e_erro, numero_possibilidades_tabela_verdade, tamano_fake, caminho_fake);
-}
-
-void ordenar_por_ordem_alfabetica_cidades_pesquisa(cidadesPesquisa *pesquisa){
-    if((!esta_em_ordem_alfabetica(pesquisa->cidade1, pesquisa->cidade2))){
-        char aux[20];
-        copiar_string(aux, pesquisa->cidade1);
-        copiar_string(pesquisa->cidade1,  pesquisa->cidade2);
-        copiar_string(pesquisa->cidade2, aux);
+void printa_linha(int *linha_tabela_verdade, int t){
+    printf("\n============ LINHA ============\n");
+    for (int i = 0; i < t; ++i) {
+        printf("%d", linha_tabela_verdade[i]);
     }
+}
+
+
+int atende_condicoes_de_possibilidade(int *v, int p1, int p2){
+    if(v[p1] == 1 && v[p2] == 1){
+        return 1;
+    }
+    return 0;
+}
+
+void inicializa_cidade(char *s){
+    for (int i = 0; i < MAX_NOME_CIDADE ; ++i) {
+        s[i] = '\0';
+    }
+}
+
+int encontrar_distancia(char *cidade1, char *cidade2, cidadesLigadas *ligadas){
+    for (int i = 0; i < tamanho_struct_cidades_ligadas; ++i) {
+        if((strings_iguais(ligadas[i].cidade1, cidade1) && strings_iguais(ligadas[i].cidade2, cidade2)) || (strings_iguais(ligadas[i].cidade1, cidade2) && strings_iguais(ligadas[i].cidade2, cidade1))){
+            return ligadas[i].distancia;
+        }
+    }
+    return 0;
+}
+
+int identifica_distancia_total(int *linha_tabela_verdade, cidadesLigadas *ligadas, char **cidades, int t, int p1, int p2){
+    char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE], aux[MAX_NOME_CIDADE];
+    int soma, ja_entrei_aqui;
+    soma = ja_entrei_aqui = 0;
+    copiar_string(cidade1, cidades[p1]);
+    inicializa_cidade(cidade2);
+    for (int i = 0; i < t; ++i) {
+        if(linha_tabela_verdade[i] == 1 && !strings_iguais(cidades[i], cidade1) && !ja_entrei_aqui){//Preencher cidade2
+            copiar_string(cidade2, cidades[i]);
+            ja_entrei_aqui = 1;
+        }
+        if(cidade1[0] != '\0' && cidade2[0] != '\0'){
+            soma += encontrar_distancia(cidade1, cidade2, ligadas);
+            copiar_string(aux, cidade1);
+            copiar_string(cidade1, cidade2);
+            copiar_string(cidade2, aux);
+        }
+    }
+    return soma;
+}
+
+void solution(const int *linha_tabela_verdade, int t, char **cidades){
+    int qtde_de_1, k, posicao_print;
+    int *vetor_solucao;
+    k = qtde_de_1 = 0;
+    for (int i = 0; i < t; ++i) {
+        if(linha_tabela_verdade[i] == 1){
+            qtde_de_1++;
+        }
+    }
+    vetor_solucao = malloc(sizeof(int)*qtde_de_1);
+    for (int i = 0; i < t; ++i) {
+        if(linha_tabela_verdade[i] == 1){
+            vetor_solucao[k] = i;
+            k++;
+        }
+    }
+    for (int i = 0; i < qtde_de_1; ++i) {
+        posicao_print = vetor_solucao[i];
+        if(i != qtde_de_1 - 1){
+            printf("%s ", cidades[posicao_print]);
+        }
+        else{
+            printf("%s\n", cidades[posicao_print]);
+        }
+    }
+}
+
+void testar_tabela_verdade(int **tabela_verdade, char **cidades_diferentes, cidadesLigadas *ligadas, int dist, int p1, int p2, int q_linhas_tabela_verdade, int q_colunas_tabela_verdade){
+    printf("Distancia = %d\n", dist);
+    for (int i = 0; i < q_linhas_tabela_verdade; ++i) {
+        if(atende_condicoes_de_possibilidade(tabela_verdade[i], p1, p2)){
+            if(identifica_distancia_total(tabela_verdade[i], ligadas, cidades_diferentes, q_colunas_tabela_verdade, p1, p2) == dist){
+                printa_linha(tabela_verdade[i], q_colunas_tabela_verdade);
+                solution(tabela_verdade[i], q_colunas_tabela_verdade, cidades_diferentes);
+                break;
+            }
+        }
+    }
+}
+
+void menor_caminho_tentativa_e_erro(char **cidades_diferentes, cidadesLigadas *ligadas, int dist, int p1, int p2){
+    int **tabela_verdade, linhas, colunas;
+    colunas = qtde_cidades_diferentes;
+    linhas = myPow(2, qtde_cidades_diferentes);
+    tabela_verdade = Aloca_matriz(linhas, colunas);
+    preenche_matriz_possibilidades(tabela_verdade, linhas, colunas);
+    testar_tabela_verdade(tabela_verdade, cidades_diferentes, ligadas, dist, p1, p2, linhas, colunas);
 }
 
 int main(){
     char nome_arquivo[100] = {'m', '.', 't', 'x', 't'};
     //char nome_arquivo[100];
     FILE *f;
-    int qtde_ligacoes, **matriz_de_adjacencia, soma_distancias, dist, p1, p2, *caminho_fake, *caminho_true;
+    int qtde_ligacoes, **matriz_de_adjacencia, soma_distancias, dist, p1, p2;
     cidadesLigadas *cidades_ligadas;
     cidadesPesquisa *pesquisa;
     char **cidades_diferentes;
-    //printf("Digite o nome do arquivo de entrada: ");
-    //scanf("%s", nome_arquivo);
+//    printf("Digite o nome do arquivo de entrada: ");
+//    scanf("%s", nome_arquivo);
     f = abre_arquivo(nome_arquivo);
     tamanho_struct_cidades_ligadas = qtde_ligacoes = identifica_quantidade_de_ligacoes(f);
     //printf("Quantidade de ligacoes: %d\n", qtde_ligacoes);
     pesquisa = montar_struct_cidades_pesquisa(f, qtde_ligacoes);
-   // printar_struct_cidades_pesquisa(pesquisa);
+    // printar_struct_cidades_pesquisa(pesquisa);
     cidades_ligadas = montar_struct_cidades_ligadas(f, qtde_ligacoes);
-   // printar_struct_cidades_ligadas(cidades_ligadas);
+    // printar_struct_cidades_ligadas(cidades_ligadas);
     soma_distancias = somar_distancias_da_struct_cidades_ligadas(cidades_ligadas);
     //printf("Soma das distancias = %d\n", soma_distancias);
     qtde_comb_possiveis = combinacao(tamanho_struct_cidades_ligadas, 2);
@@ -556,15 +564,13 @@ int main(){
     //printar_matriz_de_caracteres(cidades_diferentes, qtde_cidades_diferentes);
     preencher_matriz_de_adjacencia_com_os_valores_corretos_de_distancia(matriz_de_adjacencia, cidades_diferentes, cidades_ligadas);
     //printar_matriz_de_adjacencia(matriz_de_adjacencia);
-    caminho_fake = dijkstra(matriz_de_adjacencia, identifica_posicao_da_cidade1_na_linha(pesquisa->cidade1, cidades_diferentes), cidades_diferentes);
+    dijkstra(matriz_de_adjacencia, identifica_posicao_da_cidade1_na_linha(pesquisa->cidade1, cidades_diferentes));
     //printar_matriz_de_adjacencia(matriz_de_adjacencia);
     p1 = identifica_posicao_da_cidade1_na_linha(pesquisa->cidade1, cidades_diferentes);
     p2 = identifica_posicao_da_cidade2_na_coluna(pesquisa->cidade2, cidades_diferentes);
     dist = matriz_de_adjacencia[p2][p1];
     printf("Menor percurso: ");
-    printar_menor_caminho(cidades_diferentes, caminho_fake);
-    caminho_true = criar_menor_caminho_true(caminho_fake, cidades_diferentes);
-    //menor_caminho(dist, cidades_diferentes, matriz_de_adjacencia, p1, p2);
+    menor_caminho_tentativa_e_erro(cidades_diferentes, cidades_ligadas, dist, p1, p2);
     printf("Distancia total: %d Km", dist);
     return 0;
 }
