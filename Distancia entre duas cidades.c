@@ -2,7 +2,7 @@
  * Autor: Antônio Pierre Martins Vieira
  * Data: 20/10/2019
  * Disponível em: https://github.com/PierreVieira/AEDS_I_C/blob/master/Distancia%20entre%20duas%20cidades.c
- * Créditos algoritmo de Dijkstra (foi adaptado): https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
+ * Site de onde foi retirado o algoritmo de Dijkstra (foi adaptado): https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
  */
 
 #include <stdio.h>
