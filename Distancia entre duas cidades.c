@@ -1,19 +1,25 @@
+/*
+ * Autor: Antônio Pierre Martins Vieira
+ * Data: 20/10/2019
+ * Disponível em: https://github.com/PierreVieira/AEDS_I_C/blob/master/Distancia%20entre%20duas%20cidades.c
+ * Créditos algoritmo de Dijkstra (foi adaptado): https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #define MAX_NOME_CIDADE 20
-#define TAM_VET_POSICOES 15
 #define CONDICAO_PROIBIDA -1
 
 typedef struct{
     char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE];
-    int distancia, faz_parte_da_solucao;
+    int distancia;
 }cidadesLigadas;
 
 typedef struct{
     char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE];
 }cidadesPesquisa;
 
-int tamanho_struct_cidades_ligadas, qtde_cidades_diferentes, qtde_comb_possiveis;
+int tamanho_struct_cidades_ligadas, qtde_cidades_diferentes, qtde_comb_possiveis, tamanho_vetor_posicoes, distancia_final;
 
 FILE * abre_arquivo(const char *nome_arquivo){
     FILE *f;
@@ -50,6 +56,7 @@ void voltar_pro_inicio_ignorando_primeira_linha(FILE *f, char *primeira_linha){
     fseek(f, 0, SEEK_SET);//Voltar pro início do arquivo
     fscanf(f, "%s", primeira_linha);//pular primeira linha
 }
+
 int identifica_quantidade_de_ligacoes(FILE *f){
     char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE], distancia[MAX_NOME_CIDADE], primeira_linha[MAX_NOME_CIDADE];
     int cont;
@@ -126,7 +133,6 @@ cidadesLigadas* montar_struct_cidades_ligadas(FILE *f, int qtde_ligacoes){
             copiar_string(ligadas[i].cidade1, s1);
             copiar_string(ligadas[i].cidade2, s2);
             ligadas[i].distancia = converte_string_pra_int(s3);
-            ligadas[i].faz_parte_da_solucao = 0;
         }
         else{
             return ligadas;
@@ -134,21 +140,6 @@ cidadesLigadas* montar_struct_cidades_ligadas(FILE *f, int qtde_ligacoes){
         i++;
     }
     return NULL;
-}
-
-void printar_struct_cidades_pesquisa(cidadesPesquisa *pesquisa){
-    printf("========= PESQUISA =========\n");
-    printf("Cidade 1: %s\nCidade 2: %s\n", pesquisa->cidade1, pesquisa->cidade2);
-    printf("============================\n");
-}
-
-void printar_struct_cidades_ligadas(cidadesLigadas *ligadas){
-    printf("========= CIDADES LIGADAS =========\n");
-    for (int i = 0; i < tamanho_struct_cidades_ligadas; ++i) {
-        printf("Cidade 1: %s\nCidade2: %s\nDistancia: %d\n", ligadas[i].cidade1, ligadas[i].cidade2, ligadas[i].distancia);
-        printf("-----------------------------------\n");
-    }
-    printf("===================================\n");
 }
 
 int somar_distancias_da_struct_cidades_ligadas(cidadesLigadas *ligadas){
@@ -167,17 +158,6 @@ void preencher_matriz_de_adjacencia(int **matriz, int soma){
     }
 }
 
-void printar_matriz_de_adjacencia(int **matriz){
-    printf("======== MATRIZ ========\n");
-    for (int i = 0; i < qtde_cidades_diferentes; ++i) {
-        for (int j = 0; j < qtde_cidades_diferentes; ++j) {
-            printf("[%2d]", matriz[i][j]);
-        }
-        printf("\n");
-    }
-    printf("========================\n");
-}
-
 int repreencher_matriz_caracteres(char **matriz_char, cidadesLigadas *ligadas){
     int i, j, k, qtde_consideravel;
     for (i = 0; i < tamanho_struct_cidades_ligadas; ++i) {
@@ -189,7 +169,6 @@ int repreencher_matriz_caracteres(char **matriz_char, cidadesLigadas *ligadas){
     qtde_consideravel = i + k;
     return qtde_consideravel;//quantidade de linhas a se considerar
 }
-
 
 void copiar_o_importante_de_2_para_1(char **m1, char **m2, int q){//Copia o conteudo de m2 para m1 até q;
     for (int i = 0; i < q; ++i) {
@@ -266,64 +245,6 @@ int combinacao(int A, int B){//retorna a combinacao de A pra B
     return fatorial(A)/(fatorial(B)*fatorial(A - B));
 }
 
-int em_maiusuculo(char c){
-    if(c >= 97 && c <= 122){
-        c -= 32;
-    }
-    return c;
-}
-
-int o_caractere_esta_em_conformidade(char c1, char c2){//verifica se o caractere 1 etá em conformidade alfabética com o caractere2
-    if(c1 > c2){
-        return 0;
-    }
-    return 1;
-}
-
-int verifica_ordem(char *s1, char *s2){
-    //Sendo a quantidade de caracteres de s1 maior que a quantidade de caracteres de s2, verifica-se se s1 está em conformidade
-    //de ordem alfabética em relação à s2
-    int q1, q2, q;
-    q1 = quantidade_de_caracteres(s1);
-    q2 = quantidade_de_caracteres(s2);
-    if(q1 < q2){
-        q = q1;
-    }
-    else{
-        q = q2;
-    }
-    for (int i = 0; i < q ; ++i) {
-        if(em_maiusuculo(s1[i]) != em_maiusuculo(s2[i])){
-            if(!o_caractere_esta_em_conformidade(s1[i], s2[i])){
-                return 0;//Quer dizer que não está em conformidade com a ordem alfabética
-            }
-            else{
-                return 1;
-            }
-        }
-    }
-    return 1;//Quer dizer que está em conformidade com a ordem alfabética
-}
-
-int esta_em_ordem_alfabetica(char *s1, char *s2){//Verifica se s1 está em ordem alfabética se comparado à s2
-    int retorno;
-    retorno = verifica_ordem(s1, s2);
-    return retorno;
-}
-
-void ordenar_por_ordem_alfabetica(char **vetor_de_strings){
-    char aux[20]; //vetor auxiliar para fazer a troca
-    for (int i = 0; i < qtde_cidades_diferentes; ++i) {
-        for (int j = i+1; j < qtde_cidades_diferentes; ++j) {
-            if((!esta_em_ordem_alfabetica(vetor_de_strings[i], vetor_de_strings[j]))){
-                copiar_string(aux, vetor_de_strings[i]);
-                copiar_string(vetor_de_strings[i], vetor_de_strings[j]);
-                copiar_string(vetor_de_strings[j], aux);
-            }
-        }
-    }
-}
-
 void preencher_diagonal_principal_com_0(int **m){
     for (int i = 0; i < qtde_cidades_diferentes; ++i) {
         m[i][i] = 0;
@@ -356,6 +277,7 @@ int identifica_posicao_da_cidade2_na_coluna(char *cidade2, char **cidades){
     }
     return CONDICAO_PROIBIDA;
 }
+
 int identifica_na_struct_a_distancia_entre_as_cidades(cidadesLigadas *ligadas, char *cidade1, char *cidade2){
     for (int i = 0; i < tamanho_struct_cidades_ligadas; ++i) {
         if(strings_iguais(cidade1, ligadas[i].cidade1) && strings_iguais(cidade2, ligadas[i].cidade2)){
@@ -364,6 +286,7 @@ int identifica_na_struct_a_distancia_entre_as_cidades(cidadesLigadas *ligadas, c
     }
     return CONDICAO_PROIBIDA;
 }
+
 void preencher_matriz_de_adjacencia_com_os_valores_corretos_de_distancia(int **matriz_de_adjacencia, char **vetor_cidades, cidadesLigadas *ligadas){
     preencher_diagonal_principal_com_0(matriz_de_adjacencia);
     int pos_c1, pos_c2, distancia;
@@ -380,197 +303,119 @@ void preencher_matriz_de_adjacencia_com_os_valores_corretos_de_distancia(int **m
     }
 }
 
-void dijkstra(int **matriz, int p){
-    int *visitados, n = qtde_cidades_diferentes;
-    visitados = calloc(qtde_cidades_diferentes, sizeof(int));
-    // O valor 'i' do for abaixo não é utilizado, pois o for serve apenas para percorrer o número de colunas da matriz
-    for(int i = 1; i < n; i++){ // Começa em 1 pois não precisa comparar o vértice com ele mesmo
-        int min = CONDICAO_PROIBIDA; // Variável que guarda a posição do menor valor, inicia em CONDICAO_PROIBIDA pois é uma posição inválida
-        unsigned long int MinValor = 4294967295; // Variável que guarda o menor valor encontrado, inicia com 'infinito', assim, sempre na primeira passada o valor será menor que esta variável
-        // For que percorre todas as linhas na coluna [0]
-        for(int j = 1; j < n; j++){
-            // Se o vertice ainda não foi visitado e o valor for menor que o 'MinValor'
-            if( !visitados[j] && matriz[j][p] < MinValor ){
-                min = j; // Guarda a posição do menor
-                MinValor = matriz[j][p]; // Guarda o menor valor
-            }
-        }
-        visitados[min] = 1; // Marca o valor a posição do minimo como visitado
-        // For de 1 até n
-        for(int j = 1; j < n; j++){
-            // Se o valor da coluna [0] + o valor da coluna que está passando for menor que o valor da linha que está passando e coluna [0]
-            // Atualiza a primeira coluna da matriz, que será utilizado para as próximas iterações
-            if( (matriz[min][p] + matriz[min][j]) < matriz[j][p] ){
-                matriz[j][p] = matriz[min][p] + matriz[min][j];
-            }
-        }
-    }
-}
+int* dijkstra(int **G,int n, int startnode, int endnode, int max, int soma){
+    //Função adaptada do site: https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
+    int **cost, *distance, *pred, *visited, count, mindistance, nextnode, i, j, cont, *vetor_posicoes_resposta, k;
+    nextnode = cont = k = 0;
+    cost = Aloca_matriz(max, max);
+    distance = malloc(sizeof(int)*max);
+    pred = malloc(sizeof(int)*max);
+    visited = malloc(sizeof(int)*max);
 
-void ordenar_por_ordem_alfabetica_cidades_pesquisa(cidadesPesquisa *pesquisa){
-    if((!esta_em_ordem_alfabetica(pesquisa->cidade1, pesquisa->cidade2))){
-        char aux[20];
-        copiar_string(aux, pesquisa->cidade1);
-        copiar_string(pesquisa->cidade1,  pesquisa->cidade2);
-        copiar_string(pesquisa->cidade2, aux);
-    }
-}
+    for(i=0;i<n;i++)
+        for(j=0;j<n;j++)
+            if(G[i][j]==0)
+                cost[i][j] = soma;
+            else
+                cost[i][j]=G[i][j];
 
-void preenche_matriz_possibilidades(int **matriz_tentativa_e_erro, int linhas, int colunas){
-    //Deve-se fixar a coluna e percorrer as linhas
-    int numero, alternancia, cont;
-    alternancia = 1;
-    for (int j = colunas-1; j >= 0; --j) {
-        numero = cont = 0;
-        for (int i = 0; i < linhas; ++i) {
-            if(cont == alternancia){
-                numero = !numero;
-                cont = 0;
+    for(i=0;i<n;i++){
+        distance[i]=cost[startnode][i];
+        pred[i]=startnode;
+        visited[i]=0;
+    }
+
+    distance[startnode]=0;
+    visited[startnode]=1;
+    count=1;
+
+    while(count<n-1){
+        mindistance = soma;
+
+        for(i=0;i<n;i++)
+            if(distance[i]<mindistance&&!visited[i]){
+                mindistance=distance[i];
+                nextnode=i;
             }
-            matriz_tentativa_e_erro[i][j] = numero;
+        visited[nextnode]=1;
+        for(i=0;i<n;i++)
+            if(!visited[i])
+                if(mindistance+cost[nextnode][i]<distance[i]){
+                    distance[i]=mindistance+cost[nextnode][i];
+                    pred[i]=nextnode;
+                }
+        count++;
+    }
+    for(i = 0; i < n; i++) {
+        if (i == endnode) {
             cont++;
+            distancia_final = distance[i];
+            j = i;
+            do {
+                cont++;
+                j = pred[j];
+            } while (j != startnode);
         }
-        alternancia*=2;
+    }
+    vetor_posicoes_resposta = malloc(sizeof(int)*cont);
+    for(i = 0; i < n; i++) {
+        if (i == endnode) {
+            j = vetor_posicoes_resposta[k] = i;
+            do {
+                k++;
+                j = pred[j];
+                vetor_posicoes_resposta[k] = j;
+            } while (j != startnode);
+        }
+    }
+    tamanho_vetor_posicoes = cont;
+    return vetor_posicoes_resposta;
+}
+
+void inverter_vetor(int *v, int t){//A função inverte um vetor de tamanho t;
+    for (int aux, i = 0, j = t - 1; i < t/2; ++i, --j) {
+        aux = v[i];
+        v[i] = v[j];
+        v[j] = aux;
     }
 }
 
-void printa_linha(int *linha_tabela_verdade, int t){
-    printf("\n============ LINHA ============\n");
-    for (int i = 0; i < t; ++i) {
-        printf("%d", linha_tabela_verdade[i]);
-    }
-}
-
-
-int atende_condicoes_de_possibilidade(int *v, int p1, int p2){
-    if(v[p1] == 1 && v[p2] == 1){
-        return 1;
-    }
-    return 0;
-}
-
-void inicializa_cidade(char *s){
-    for (int i = 0; i < MAX_NOME_CIDADE ; ++i) {
-        s[i] = '\0';
-    }
-}
-
-int encontrar_distancia(char *cidade1, char *cidade2, cidadesLigadas *ligadas){
-    for (int i = 0; i < tamanho_struct_cidades_ligadas; ++i) {
-        if((strings_iguais(ligadas[i].cidade1, cidade1) && strings_iguais(ligadas[i].cidade2, cidade2)) || (strings_iguais(ligadas[i].cidade1, cidade2) && strings_iguais(ligadas[i].cidade2, cidade1))){
-            return ligadas[i].distancia;
-        }
-    }
-    return 0;
-}
-
-int identifica_distancia_total(int *linha_tabela_verdade, cidadesLigadas *ligadas, char **cidades, int t, int p1, int p2){
-    char cidade1[MAX_NOME_CIDADE], cidade2[MAX_NOME_CIDADE], aux[MAX_NOME_CIDADE];
-    int soma, ja_entrei_aqui;
-    soma = ja_entrei_aqui = 0;
-    copiar_string(cidade1, cidades[p1]);
-    inicializa_cidade(cidade2);
-    for (int i = 0; i < t; ++i) {
-        if(linha_tabela_verdade[i] == 1 && !strings_iguais(cidades[i], cidade1) && !ja_entrei_aqui){//Preencher cidade2
-            copiar_string(cidade2, cidades[i]);
-            ja_entrei_aqui = 1;
-        }
-        if(cidade1[0] != '\0' && cidade2[0] != '\0'){
-            soma += encontrar_distancia(cidade1, cidade2, ligadas);
-            copiar_string(aux, cidade1);
-            copiar_string(cidade1, cidade2);
-            copiar_string(cidade2, aux);
-        }
-    }
-    return soma;
-}
-
-void solution(const int *linha_tabela_verdade, int t, char **cidades){
-    int qtde_de_1, k, posicao_print;
-    int *vetor_solucao;
-    k = qtde_de_1 = 0;
-    for (int i = 0; i < t; ++i) {
-        if(linha_tabela_verdade[i] == 1){
-            qtde_de_1++;
-        }
-    }
-    vetor_solucao = malloc(sizeof(int)*qtde_de_1);
-    for (int i = 0; i < t; ++i) {
-        if(linha_tabela_verdade[i] == 1){
-            vetor_solucao[k] = i;
-            k++;
-        }
-    }
-    for (int i = 0; i < qtde_de_1; ++i) {
-        posicao_print = vetor_solucao[i];
-        if(i != qtde_de_1 - 1){
-            printf("%s ", cidades[posicao_print]);
+void menor_percurso(const int *vetor_posicoes, char **cidades){
+    for (int i = 0; i < tamanho_vetor_posicoes; ++i) {
+        if(i != tamanho_vetor_posicoes - 1){
+            printf("%s ", cidades[vetor_posicoes[i]]);
         }
         else{
-            printf("%s\n", cidades[posicao_print]);
+            printf("%s\n", cidades[vetor_posicoes[i]]);
         }
     }
-}
-
-void testar_tabela_verdade(int **tabela_verdade, char **cidades_diferentes, cidadesLigadas *ligadas, int dist, int p1, int p2, int q_linhas_tabela_verdade, int q_colunas_tabela_verdade){
-    printf("Distancia = %d\n", dist);
-    for (int i = 0; i < q_linhas_tabela_verdade; ++i) {
-        if(atende_condicoes_de_possibilidade(tabela_verdade[i], p1, p2)){
-            if(identifica_distancia_total(tabela_verdade[i], ligadas, cidades_diferentes, q_colunas_tabela_verdade, p1, p2) == dist){
-                printa_linha(tabela_verdade[i], q_colunas_tabela_verdade);
-                solution(tabela_verdade[i], q_colunas_tabela_verdade, cidades_diferentes);
-                break;
-            }
-        }
-    }
-}
-
-void menor_caminho_tentativa_e_erro(char **cidades_diferentes, cidadesLigadas *ligadas, int dist, int p1, int p2){
-    int **tabela_verdade, linhas, colunas;
-    colunas = qtde_cidades_diferentes;
-    linhas = myPow(2, qtde_cidades_diferentes);
-    tabela_verdade = Aloca_matriz(linhas, colunas);
-    preenche_matriz_possibilidades(tabela_verdade, linhas, colunas);
-    testar_tabela_verdade(tabela_verdade, cidades_diferentes, ligadas, dist, p1, p2, linhas, colunas);
 }
 
 int main(){
-    char nome_arquivo[100] = {'m', '.', 't', 'x', 't'};
-    //char nome_arquivo[100];
+    char nome_arquivo[100];
     FILE *f;
-    int qtde_ligacoes, **matriz_de_adjacencia, soma_distancias, dist, p1, p2;
+    int qtde_ligacoes, **matriz_de_adjacencia, soma_distancias, p1, p2, *vetor_posicoes;
     cidadesLigadas *cidades_ligadas;
     cidadesPesquisa *pesquisa;
     char **cidades_diferentes;
-//    printf("Digite o nome do arquivo de entrada: ");
-//    scanf("%s", nome_arquivo);
+    printf("Digite o nome do arquivo de entrada: ");
+    scanf("%s", nome_arquivo);
     f = abre_arquivo(nome_arquivo);
     tamanho_struct_cidades_ligadas = qtde_ligacoes = identifica_quantidade_de_ligacoes(f);
-    //printf("Quantidade de ligacoes: %d\n", qtde_ligacoes);
     pesquisa = montar_struct_cidades_pesquisa(f, qtde_ligacoes);
-    // printar_struct_cidades_pesquisa(pesquisa);
     cidades_ligadas = montar_struct_cidades_ligadas(f, qtde_ligacoes);
-    // printar_struct_cidades_ligadas(cidades_ligadas);
     soma_distancias = somar_distancias_da_struct_cidades_ligadas(cidades_ligadas);
-    //printf("Soma das distancias = %d\n", soma_distancias);
     qtde_comb_possiveis = combinacao(tamanho_struct_cidades_ligadas, 2);
     cidades_diferentes = identifica_quantidade_de_cidades_diferentes(cidades_ligadas);
-    //printar_matriz_de_caracteres(cidades_diferentes, qtde_cidades_diferentes);
     matriz_de_adjacencia = Aloca_matriz(qtde_cidades_diferentes, qtde_cidades_diferentes);
     preencher_matriz_de_adjacencia(matriz_de_adjacencia, soma_distancias);
-    //printar_matriz_de_adjacencia(matriz_de_adjacencia);
-    ordenar_por_ordem_alfabetica(cidades_diferentes);
-    ordenar_por_ordem_alfabetica_cidades_pesquisa(pesquisa);
-    //printar_matriz_de_caracteres(cidades_diferentes, qtde_cidades_diferentes);
     preencher_matriz_de_adjacencia_com_os_valores_corretos_de_distancia(matriz_de_adjacencia, cidades_diferentes, cidades_ligadas);
-    //printar_matriz_de_adjacencia(matriz_de_adjacencia);
-    dijkstra(matriz_de_adjacencia, identifica_posicao_da_cidade1_na_linha(pesquisa->cidade1, cidades_diferentes));
-    //printar_matriz_de_adjacencia(matriz_de_adjacencia);
     p1 = identifica_posicao_da_cidade1_na_linha(pesquisa->cidade1, cidades_diferentes);
     p2 = identifica_posicao_da_cidade2_na_coluna(pesquisa->cidade2, cidades_diferentes);
-    dist = matriz_de_adjacencia[p2][p1];
+    vetor_posicoes = dijkstra(matriz_de_adjacencia, qtde_cidades_diferentes, p1, p2, qtde_cidades_diferentes, soma_distancias);
+    inverter_vetor(vetor_posicoes, tamanho_vetor_posicoes);
     printf("Menor percurso: ");
-    menor_caminho_tentativa_e_erro(cidades_diferentes, cidades_ligadas, dist, p1, p2);
-    printf("Distancia total: %d Km", dist);
+    menor_percurso(vetor_posicoes, cidades_diferentes);
+    printf("Distancia total: %d Km", distancia_final);
     return 0;
 }
