@@ -1,5 +1,5 @@
 # AEDS I (C language)
-<p>Repositório referente aos problemas de AEDS I (CEFET-MG 2019.2) escritos em linguagem C.</p>
+<p>Repositório referente aos problemas de LAEDS I (CEFET-MG 2019.2) escritos em linguagem C.</p>
 <p>Todos os problemas aqui enviados foram aceitos pelo sistema de correção do run.codes.</p>
 <p align = "center"><strong>Cuidado com o plágio!</strong></p>
 <p>Caso utilize algo deste respositório favor referenciá-lo.</p>
