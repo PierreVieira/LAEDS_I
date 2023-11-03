@@ -1,6 +1,8 @@
 /*
  * Autor: Pierre Vieira
- * Data atual do sistema: 15/08/2019
+ * Contribuidor: Vinícius N. Silva - vnszero - https://github.com/vnszero
+ * Data inicial do sistema: 15/08/2019
+ * Data atual do sistema: 03/11/2023
  * Clion ------> JetBrains IDE
  * Observação: esse programa foi inicialmente feito na sexta-feira 09/08/2019
  * Foram úteis para o desenvolvimento de raciocínio dessa questão os seguintes links abaixo
@@ -9,50 +11,56 @@
  * https://youtu.be/ECIvoHU67Q4
  * Acesse meu canal no Youtube: https://www.youtube.com/channel/UCGF4Ag9zGp6newv-tkSkTcA/videos
  */
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#define maximoBits 36000
-
-void printa_vetor(int *V, int tamanho){//Printa o vetor de trás pra frente já que inicialmente ele está invertido
-    for(int i = tamanho; i >= 0; --i){
-        printf("%d",V[i]);
+#define MAX_SIZE 36000
+void show_result(int *result, int size);
+int result_x_current_and_resize(int *result, int size, int current);
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    if (n < 2)
+    { // 0 and 1
+        printf("1\n");
     }
-}
-
-int cerebroBits(int n, int *vetor_resultado, int tamanho){//Essa função irá realizar a multiplicação de um único bit
-    int i, resultado = 0, operacao;
-    for(i = 0 ; i <= tamanho; ++i){
-        operacao = vetor_resultado[i]*n + resultado;
-        resultado = operacao/10;
-        vetor_resultado[i] = operacao%10;
-    }
-    while(resultado!=0){//Se o resultado é 0, então precisamos tratar esse "bit"
-        vetor_resultado[i]=resultado%10;
-        resultado /= 10;
-        ++i;
-    }
-    --i;//Por algum motivo se eu não der esse -- ele dá pau :(
-    return i;
-}
-
-int main(){
-    int numero, tamanho = 0, *vetor_resultado;
-    printf("Digite um numero inteiro: ");
-    scanf("%d",&numero);
-    if(numero == 1 || numero == 0){//Se o número for 1 ou 0 não é necessário executar o resto do programa para saber que o vetor_resultadoorial é 1
-        printf("1");
-    }
-    else{
-        vetor_resultado = calloc(maximoBits, sizeof(int));//Aloca um vetor de maximoBits de tamanho incializando com 0
-        vetor_resultado[0]=1;//Começa em 1
-        for(int i=0; i <= numero; ++i){//Iremos percorrer de 1 até o numero e não da forma tradicional (do numero ate 1)
-            if(i > 1){//Se não estamos mais no número 1, então o vatorial não é 1 mais
-                tamanho = cerebroBits(i, vetor_resultado, tamanho);//E então as multiplicações são feitas
-            }
+    else
+    { // 2+
+        int *result = calloc(MAX_SIZE, sizeof(int));
+        int size = 1;
+        result[0] = 2; // ready to print N=2
+        for (int current = n; current > 2; current--)
+        { // N * N-1 * N-2 * N-3 ... * 3
+            size = result_x_current_and_resize(result, size, current);
         }
-        printf("Resultado: ");
-        printa_vetor(vetor_resultado, tamanho);//Depois que já ta tudo ok é só printar o vetor e correr pro abraço
+        show_result(result, size);
+        free(result);
     }
-    free(vetor_resultado);//Libera memória do vetor_resultado
     return 0;
+}
+void show_result(int *result, int size)
+{ // the zero position keeps the least significant digit
+    for (int i = size - 1; i >= 0; i--)
+    {
+        printf("%d", result[i]);
+    }
+    printf("\n");
+}
+int result_x_current_and_resize(int *result, int size, int current)
+{ // returns the new size for result pointer
+    int carry = 0;
+    int aux;
+    for (int index = 0; index < size; index++)
+    { // loop over result to recalculate and find carries
+        aux = result[index]*current + carry;
+        result[index] = aux % 10;
+        carry = aux / 10;
+    }
+    while (carry > 0)
+    { // resize and solve missing carry in the end
+        result[size] = carry % 10;
+        carry /= 10;
+        size++;
+    }
+    return size;
 }
